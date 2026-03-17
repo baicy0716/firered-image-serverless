@@ -1,0 +1,70 @@
+{
+  "name": "FireRed-Image-Edit",
+  "description": "FireRed-Image-Edit API for clothing change and image editing",
+  "version": "1.0.0",
+  "runtime": "python3.12",
+  "containerDiskInGb": 50,
+  "gpuCount": 1,
+  "volumeInGb": 100,
+  "env": [
+    {
+      "key": "HF_HOME",
+      "value": "/workspace/huggingface_cache"
+    },
+    {
+      "key": "TMPDIR",
+      "value": "/workspace/tmp"
+    },
+    {
+      "key": "TORCH_HOME",
+      "value": "/workspace/torch_cache"
+    }
+  ],
+  "handler": "runpod_handler.handler",
+  "input": {
+    "type": "object",
+    "properties": {
+      "type": {
+        "type": "string",
+        "description": "Job type: 'edit' or 'edit-batch'",
+        "enum": ["edit", "edit-batch"]
+      },
+      "image": {
+        "type": "string",
+        "description": "Base64 encoded input image (for 'edit' type)"
+      },
+      "images": {
+        "type": "array",
+        "description": "Array of base64 encoded images (for 'edit-batch' type)",
+        "items": {
+          "type": "string"
+        }
+      },
+      "prompt": {
+        "type": "string",
+        "description": "Edit prompt (e.g., 'person wearing a red dress')"
+      },
+      "model_name": {
+        "type": "string",
+        "description": "Model name",
+        "default": "FireRed-Image-Edit-1.1"
+      },
+      "num_inference_steps": {
+        "type": "integer",
+        "description": "Number of inference steps (1-100)",
+        "default": 40
+      },
+      "cfg_scale": {
+        "type": "number",
+        "description": "Control strength (0.0-20.0)",
+        "default": 4.0
+      },
+      "seed": {
+        "type": "integer",
+        "description": "Random seed",
+        "default": 49
+      }
+    },
+    "required": ["type", "prompt"]
+  }
+}
