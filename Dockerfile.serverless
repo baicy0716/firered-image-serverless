@@ -21,8 +21,8 @@ RUN pip install --no-cache-dir brotli
 # 升级 requests 和 urllib3 以支持 brotli
 RUN pip install --no-cache-dir --upgrade requests urllib3
 
-# 安装 runpod 和核心依赖
-RUN pip install --no-cache-dir runpod
+# 安装 runpod 和核心依赖（使用最新版本）
+RUN pip install --no-cache-dir --upgrade runpod
 
 # 安装 transformers 和相关依赖
 RUN pip install --no-cache-dir transformers

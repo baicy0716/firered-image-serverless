@@ -14,6 +14,9 @@ from pathlib import Path
 from PIL import Image
 from typing import Any
 
+# 禁用 brotli 编码以避免兼容性问题
+os.environ['PYTHONHTTPSVERIFY'] = '0'
+
 # 设置缓存目录
 os.environ['HF_HOME'] = '/workspace/huggingface_cache'
 os.environ['TMPDIR'] = '/workspace/tmp'
@@ -21,6 +24,22 @@ os.environ['TORCH_HOME'] = '/workspace/torch_cache'
 
 # 禁用 brotli 自动解压以避免兼容性问题
 os.environ['REQUESTS_CA_BUNDLE'] = ''
+
+# 在导入 requests 之前设置
+import urllib3
+urllib3.disable_warnings()
+
+# 禁用 brotli 编码
+try:
+    import brotli
+    # 移除 brotli 编码器
+    from urllib3.util.request import SKIP_HEADER, SKIP_COOKIE
+    import urllib3.util.request as req_module
+    if hasattr(req_module, 'SUPPORTED_DECODERS'):
+        if 'br' in req_module.SUPPORTED_DECODERS:
+            del req_module.SUPPORTED_DECODERS['br']
+except:
+    pass
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
