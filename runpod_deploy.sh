@@ -31,7 +31,7 @@ echo "✅ 依赖已安装"
 # 3. 下载模型
 echo ""
 echo "📥 下载模型..."
-python download_models.py
+python3 download_models.py
 
 # 4. 清理端口
 echo ""
@@ -44,7 +44,7 @@ echo "🚀 检查 ComfyUI..."
 if ! curl -s http://localhost:8188/system_stats > /dev/null 2>&1; then
     echo "启动 ComfyUI..."
     cd /workspace/ComfyUI
-    nohup python main.py > /tmp/comfyui.log 2>&1 &
+    nohup python3 main.py > /tmp/comfyui.log 2>&1 &
     echo "等待 ComfyUI 启动..."
     sleep 10
 fi
@@ -53,7 +53,7 @@ fi
 echo ""
 echo "🚀 启动 API 服务器..."
 cd /workspace/firered-image-serverless
-nohup python comfyui_api_server.py > /tmp/api_server.log 2>&1 &
+nohup python3 comfyui_api_server.py > /tmp/api_server.log 2>&1 &
 API_PID=$!
 
 sleep 3
