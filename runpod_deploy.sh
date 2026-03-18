@@ -25,7 +25,7 @@ echo "✅ 项目已就绪"
 # 2. 安装依赖
 echo ""
 echo "📦 安装依赖..."
-pip install -q --ignore-installed tqdm requests Flask Werkzeug
+pip install -q tqdm requests Flask==2.3.3 Werkzeug==2.3.7 2>/dev/null || pip install -q --no-deps tqdm requests Flask Werkzeug
 echo "✅ 依赖已安装"
 
 # 3. 下载模型
