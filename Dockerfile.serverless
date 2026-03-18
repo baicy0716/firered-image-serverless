@@ -15,6 +15,9 @@ RUN mkdir -p /workspace/huggingface_cache /workspace/tmp /workspace/torch_cache
 # 升级基础工具
 RUN pip install --upgrade pip setuptools wheel
 
+# 安装 brotli 用于解压缩
+RUN pip install --no-cache-dir brotli
+
 # 安装 runpod 和核心依赖
 RUN pip install --no-cache-dir runpod
 
