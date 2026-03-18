@@ -33,8 +33,8 @@ RUN pip install --no-cache-dir accelerate safetensors
 # 复制处理器脚本
 COPY runpod_handler.py /app/
 
-# 预下载模型到缓存（带错误处理）
-RUN python3 << 'EOF'
+# 创建模型预下载脚本
+RUN cat > /tmp/preload_model.py << 'PYTHON_EOF'
 import os
 os.environ['HF_HOME'] = '/workspace/huggingface_cache'
 try:
@@ -49,7 +49,10 @@ try:
 except Exception as e:
     print(f"Warning: Could not pre-download model: {e}")
     print("Model will be downloaded on first request")
-EOF
+PYTHON_EOF
+
+# 运行预下载脚本
+RUN python3 /tmp/preload_model.py || true
 
 # 设置入口点
 ENTRYPOINT ["python3", "-u", "/app/runpod_handler.py"]
