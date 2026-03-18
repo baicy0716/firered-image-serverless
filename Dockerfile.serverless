@@ -30,26 +30,12 @@ RUN pip install --no-cache-dir diffusers
 # 安装其他依赖
 RUN pip install --no-cache-dir accelerate safetensors
 
-# 复制处理器脚本
+# 复制处理器脚本和模型预下载脚本
 COPY runpod_handler.py /app/
+COPY preload_model.py /app/
 
-# 创建模型预下载脚本
-RUN python3 << 'PYTHON_EOF'
-import os
-os.environ['HF_HOME'] = '/workspace/huggingface_cache'
-try:
-    from diffusers import QwenImageEditPlusPipeline
-    import torch
-    print("Downloading model...")
-    QwenImageEditPlusPipeline.from_pretrained(
-        'FireRedTeam/FireRed-Image-Edit-1.1',
-        torch_dtype=torch.bfloat16
-    )
-    print("Model downloaded successfully")
-except Exception as e:
-    print(f"Warning: Could not pre-download model: {e}")
-    print("Model will be downloaded on first request")
-PYTHON_EOF
+# 运行模型预下载脚本
+RUN python3 /app/preload_model.py || true
 
 # 设置入口点
 ENTRYPOINT ["python3", "-u", "/app/runpod_handler.py"]
