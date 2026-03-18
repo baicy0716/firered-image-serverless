@@ -19,6 +19,9 @@ os.environ['HF_HOME'] = '/workspace/huggingface_cache'
 os.environ['TMPDIR'] = '/workspace/tmp'
 os.environ['TORCH_HOME'] = '/workspace/torch_cache'
 
+# 禁用 brotli 自动解压以避免兼容性问题
+os.environ['REQUESTS_CA_BUNDLE'] = ''
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
