@@ -1,66 +1,84 @@
-#!/usr/bin/env python3
-"""快速测试 FireRed-Image API"""
-
 import requests
+import base64
 import json
-import sys
+import time
 from pathlib import Path
 
-def test_api(base_url: str = "http://localhost:8080"):
-    """测试 API 端点"""
+# API 端点
+API_URL = "https://api.runpod.ai/v2/q3p5ssmpl99maw/run"
 
-    print("=" * 60)
-    print("FireRed-Image API 快速测试")
-    print("=" * 60)
+# 测试图片 URL（使用公开的示例图片）
+person_url = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400"
+garment_url = "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=400"
 
-    # 1. 健康检查
-    print("\n✅ 测试 1: 健康检查")
+def download_and_encode_image(url):
+    """下载图片并转换为 base64"""
     try:
-        resp = requests.get(f"{base_url}/health", timeout=5)
-        print(f"   状态码: {resp.status_code}")
-        print(f"   响应: {json.dumps(resp.json(), indent=2, ensure_ascii=False)}")
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        return base64.b64encode(response.content).decode('utf-8')
     except Exception as e:
-        print(f"   ❌ 失败: {e}")
-        return False
+        print(f"Error downloading image: {e}")
+        return None
 
-    # 2. 列出模型
-    print("\n✅ 测试 2: 列出模型")
+def test_api():
+    """测试 API"""
+    print("Downloading images...")
+    person_b64 = download_and_encode_image(person_url)
+    garment_b64 = download_and_encode_image(garment_url)
+    
+    if not person_b64 or not garment_b64:
+        print("Failed to download images")
+        return
+    
+    # 准备请求
+    payload = {
+        "input": {
+            "type": "edit-batch",
+            "images": [person_b64, garment_b64],
+            "prompt": "换装，穿上新衣服",
+            "model_name": "HY-WU",
+            "num_inference_steps": 30,
+            "cfg_scale": 4.0,
+            "seed": 42
+        }
+    }
+    
+    print("Sending request to API...")
+    print(f"API URL: {API_URL}")
+    
     try:
-        resp = requests.get(f"{base_url}/models", timeout=5)
-        print(f"   状态码: {resp.status_code}")
-        print(f"   响应: {json.dumps(resp.json(), indent=2, ensure_ascii=False)}")
+        response = requests.post(API_URL, json=payload, timeout=30)
+        print(f"Status Code: {response.status_code}")
+        print(f"Response: {response.text}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"\nRequest ID: {result.get('id')}")
+            print(f"Status: {result.get('status')}")
+            
+            # 如果是异步，等待结果
+            if result.get('status') == 'QUEUED':
+                request_id = result.get('id')
+                print(f"\nWaiting for result (request ID: {request_id})...")
+                
+                # 轮询获取结果
+                for i in range(60):  # 最多等待 5 分钟
+                    time.sleep(5)
+                    status_url = f"https://api.runpod.ai/v2/q3p5ssmpl99maw/status/{request_id}"
+                    status_response = requests.get(status_url, timeout=10)
+                    status_data = status_response.json()
+                    
+                    print(f"Attempt {i+1}: Status = {status_data.get('status')}")
+                    
+                    if status_data.get('status') == 'COMPLETED':
+                        print(f"\nResult: {json.dumps(status_data.get('output'), indent=2)}")
+                        break
+                    elif status_data.get('status') == 'FAILED':
+                        print(f"Error: {status_data.get('output')}")
+                        break
     except Exception as e:
-        print(f"   ❌ 失败: {e}")
-        return False
-
-    # 3. 自定义文档
-    print("\n✅ 测试 3: 自定义文档")
-    try:
-        resp = requests.get(f"{base_url}/docs-custom", timeout=5)
-        print(f"   状态码: {resp.status_code}")
-        data = resp.json()
-        print(f"   服务: {data.get('service')}")
-        print(f"   版本: {data.get('version')}")
-        print(f"   端点数: {len(data.get('endpoints', {}))}")
-    except Exception as e:
-        print(f"   ❌ 失败: {e}")
-        return False
-
-    print("\n" + "=" * 60)
-    print("✅ 所有基础测试通过!")
-    print("=" * 60)
-    print("\n下一步:")
-    print("1. 准备一张图像文件")
-    print("2. 运行: python3 api_client.py")
-    print("3. 或使用 curl 测试:")
-    print(f"   curl -X POST {base_url}/edit \\")
-    print("     -F 'image=@image.png' \\")
-    print("     -F 'prompt=a beautiful portrait' \\")
-    print("     -o result.png")
-
-    return True
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
-    base_url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8080"
-    success = test_api(base_url)
-    sys.exit(0 if success else 1)
+    test_api()

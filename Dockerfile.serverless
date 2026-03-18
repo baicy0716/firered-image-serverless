@@ -15,9 +15,6 @@ RUN mkdir -p /workspace/huggingface_cache /workspace/tmp /workspace/torch_cache
 # 升级基础工具
 RUN pip install --upgrade pip setuptools wheel
 
-# 安装 brotli 用于解压缩（必须在 requests 之前）
-RUN pip install --no-cache-dir brotli
-
 # 升级 requests 和 urllib3 以支持 brotli
 RUN pip install --no-cache-dir --upgrade requests urllib3
 
