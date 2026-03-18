@@ -54,7 +54,14 @@ def load_model(model_name: str = "FireRed-Image-Edit-1.1"):
         return pipe
 
     except Exception as e:
-        logger.error(f"❌ Error loading model: {str(e)}", exc_info=True)
+        error_msg = f"Error loading model: {str(e)}"
+        logger.error(f"❌ {error_msg}", exc_info=True)
+
+        # 提供更详细的错误信息
+        if "404" in str(e) or "not found" in str(e).lower():
+            logger.error(f"Model not found: FireRedTeam/{model_name}")
+            logger.error("Available models: FireRed-Image-Edit-1.1")
+
         raise
 
 def edit_image_handler(job):
