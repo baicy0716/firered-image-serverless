@@ -1,41 +1,35 @@
 FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
 
-# 设置工作目录
-WORKDIR /app
+WORKDIR /workspace
 
-# 设置环境变量
-ENV PYTHONUNBUFFERED=1
-ENV HF_HOME=/workspace/huggingface_cache
-ENV TMPDIR=/workspace/tmp
-ENV TORCH_HOME=/workspace/torch_cache
+# 安装系统依赖
+RUN apt-get update && apt-get install -y \
+    git \
+    wget \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# 创建缓存目录
-RUN mkdir -p /workspace/huggingface_cache /workspace/tmp /workspace/torch_cache
+# 克隆 ComfyUI
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git runpod-slim/ComfyUI
 
-# 升级基础工具
-RUN pip install --upgrade pip setuptools wheel
+# 安装 ComfyUI 依赖
+WORKDIR /workspace/runpod-slim/ComfyUI
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 升级 requests 和 urllib3 以支持 brotli
-RUN pip install --no-cache-dir --upgrade requests urllib3
+# 克隆项目
+WORKDIR /workspace
+RUN git clone https://github.com/baicy0716/firered-image-serverless.git
 
-# 安装 runpod 和核心依赖（使用最新版本）
-RUN pip install --no-cache-dir --upgrade runpod
+# 安装项目依赖
+WORKDIR /workspace/firered-image-serverless
+RUN pip install --no-cache-dir -r requirements_api.txt runpod
 
-# 安装 transformers 和相关依赖
-RUN pip install --no-cache-dir transformers
+# 下载模型
+RUN python3 download_models.py
 
-# 安装 diffusers 和相关依赖
-RUN pip install --no-cache-dir diffusers
+# 设置启动脚本
+COPY runpod_serverless_init.sh /workspace/runpod_serverless_init.sh
+RUN chmod +x /workspace/runpod_serverless_init.sh
 
-# 安装其他依赖
-RUN pip install --no-cache-dir accelerate safetensors
-
-# 复制处理器脚本和模型预下载脚本
-COPY runpod_handler.py /app/
-COPY preload_model.py /app/
-
-# 运行模型预下载脚本
-RUN python3 /app/preload_model.py || true
-
-# 设置入口点
-ENTRYPOINT ["python3", "-u", "/app/runpod_handler.py"]
+# 启动
+CMD ["/workspace/runpod_serverless_init.sh"]
