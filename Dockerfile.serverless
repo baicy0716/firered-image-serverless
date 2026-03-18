@@ -33,8 +33,23 @@ RUN pip install --no-cache-dir accelerate safetensors
 # 复制处理器脚本
 COPY runpod_handler.py /app/
 
-# 预下载模型到缓存
-RUN python3 -c "from diffusers import QwenImageEditPlusPipeline; import torch; QwenImageEditPlusPipeline.from_pretrained('FireRedTeam/FireRed-Image-Edit-1.1', torch_dtype=torch.bfloat16)"
+# 预下载模型到缓存（带错误处理）
+RUN python3 << 'EOF'
+import os
+os.environ['HF_HOME'] = '/workspace/huggingface_cache'
+try:
+    from diffusers import QwenImageEditPlusPipeline
+    import torch
+    print("Downloading model...")
+    QwenImageEditPlusPipeline.from_pretrained(
+        'FireRedTeam/FireRed-Image-Edit-1.1',
+        torch_dtype=torch.bfloat16
+    )
+    print("Model downloaded successfully")
+except Exception as e:
+    print(f"Warning: Could not pre-download model: {e}")
+    print("Model will be downloaded on first request")
+EOF
 
 # 设置入口点
 ENTRYPOINT ["python3", "-u", "/app/runpod_handler.py"]
