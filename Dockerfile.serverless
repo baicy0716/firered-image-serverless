@@ -33,5 +33,8 @@ RUN pip install --no-cache-dir accelerate safetensors
 # 复制处理器脚本
 COPY runpod_handler.py /app/
 
+# 预下载模型到缓存
+RUN python3 -c "from diffusers import QwenImageEditPlusPipeline; import torch; QwenImageEditPlusPipeline.from_pretrained('FireRedTeam/FireRed-Image-Edit-1.1', torch_dtype=torch.bfloat16)"
+
 # 设置入口点
 ENTRYPOINT ["python3", "-u", "/app/runpod_handler.py"]
