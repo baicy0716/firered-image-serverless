@@ -12,18 +12,20 @@ ENV TORCH_HOME=/workspace/torch_cache
 # 创建缓存目录
 RUN mkdir -p /workspace/huggingface_cache /workspace/tmp /workspace/torch_cache
 
-# 安装 Python 依赖（PyTorch 已经在基础镜像中）
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir \
-        setuptools \
-        runpod==0.10.0 \
-        transformers==4.35.0 \
-        diffusers==0.24.0 \
-        accelerate==0.24.0 \
-        safetensors==0.4.0 \
-        pillow==10.1.0 \
-        numpy==1.24.3 \
-        requests==2.31.0
+# 升级基础工具
+RUN pip install --upgrade pip setuptools wheel
+
+# 安装 runpod 和核心依赖
+RUN pip install --no-cache-dir runpod
+
+# 安装 transformers 和相关依赖
+RUN pip install --no-cache-dir transformers
+
+# 安装 diffusers 和相关依赖
+RUN pip install --no-cache-dir diffusers
+
+# 安装其他依赖
+RUN pip install --no-cache-dir accelerate safetensors
 
 # 复制处理器脚本
 COPY runpod_handler.py /app/
