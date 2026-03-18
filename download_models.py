@@ -9,7 +9,7 @@ from pathlib import Path
 from tqdm import tqdm
 
 # ComfyUI 模型目录
-COMFYUI_BASE = "/workspace/ComfyUI"
+COMFYUI_BASE = "/workspace/runpod-slim/ComfyUI"
 MODELS = {
     "diffusion_models": [
         {
