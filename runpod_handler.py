@@ -33,14 +33,20 @@ def load_model(model_name: str = "FireRed-Image-Edit-1.1"):
 
     try:
         logger.info(f"Loading model: {model_name}")
+        logger.info(f"Model path: FireRedTeam/{model_name}")
 
         from diffusers import QwenImageEditPlusPipeline
 
+        logger.info("Downloading model from HuggingFace...")
         pipe = QwenImageEditPlusPipeline.from_pretrained(
             f"FireRedTeam/{model_name}",
             torch_dtype=torch.bfloat16,
         )
+        logger.info("Model downloaded successfully")
+
+        logger.info("Moving model to CUDA...")
         pipe.to("cuda")
+        logger.info("Model moved to CUDA")
 
         pipeline_cache[model_name] = pipe
         logger.info(f"✅ Model loaded: {model_name}")
